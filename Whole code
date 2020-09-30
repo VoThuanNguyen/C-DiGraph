@@ -1,0 +1,134 @@
+using System;
+using System.Collections.Generic;
+
+
+namespace Draft
+{
+    class Vertex
+    {
+        public bool wasVisited;
+        public string label;
+        public Vertex(string name)
+        {
+            label = name;
+            wasVisited = false;
+        }
+    }
+    class Graph
+    {
+        private const int numVertices = 20;        //constant number of vertices is 20, subject to change.
+        private Vertex[] vertices;                  //collection of vertices in the graph
+        private int[,] adjMatrix;                   //Adjacency matrix to save vertices' index
+        int numVerts;                                 //number of vertices that have been initiallized.
+        public Graph()
+        {
+            vertices = new Vertex[numVertices];
+            adjMatrix = new int[numVertices, numVertices];
+            numVerts = 0;
+        }
+        public void AddVertex(string label)
+        {
+            vertices[numVerts] = new Vertex(label);
+            numVerts++;
+        }
+        public void AddEdge (int start, int end)  //edge in digraph
+        {
+            adjMatrix[start, end] = 1;
+        }
+        public void AddEdgeNonDG (int A, int B)  //no direction in the edge
+        {
+            adjMatrix[A, B] = 1;
+            adjMatrix[B, A] = 1;
+        }
+        public void ShowVertex(int ver)
+        {
+            Console.WriteLine(vertices[ver].label + " ");
+        }
+        public int NoSuccessors()
+        {
+            bool isEdge;
+            for (int row = 0; row <= numVerts - 1; row++) 
+            {
+                isEdge = false;
+                for (int col = 0; col< numVerts; col ++)
+                {
+                    if (adjMatrix[row,col] == 1)
+                    { isEdge = true; break; }
+                }
+                if (!isEdge)
+                    return row; //search from vertex[0] to the very bottom
+            }
+            return -1; //when no non-successor vertex is found
+        }
+        public void DelVertex(int vert)
+        {
+            if(vert!=numVerts -1)
+            {
+                for (int j = vert; j <= numVerts - 1; j++)
+                    vertices[j] = vertices[j + 1];      //remove vertex[ver] by replacing it
+                for (int row = vert; row < numVerts; row++)
+                    MoveRow(row, numVerts);
+                for (int col = vert; col < numVerts; col++)
+                    MoveCol(col, numVerts);
+            }
+            numVerts--;
+        }
+        public void MoveRow(int row, int length)
+        {
+            for (int col = 0; col < length; col++)
+                adjMatrix[row, col] = adjMatrix[row + 1, col];
+        }
+        public void MoveCol(int col, int length)
+        {
+            for (int row =0;row <length;row++)
+            {
+                adjMatrix[row, col] = adjMatrix[row, col + 1];
+            }
+        }
+        public void TopSort()
+        {
+            int origVerts = numVerts;
+            Stack<string> storage = new Stack<string>();
+            while (numVerts>0)
+            {
+                int currVertex = NoSuccessors();
+                if (currVertex == -1)
+                { Console.WriteLine("Error: A connected graph");return; }
+                storage.Push(vertices[currVertex].label);
+                DelVertex(currVertex);
+
+            }
+            Console.Write("Topological sorting order: ");       
+            while (storage.Count > 0)
+                Console.Write(storage.Pop() + " ");
+        }
+        public void ShowMatrix()
+        {
+            for (int row=0;row<numVerts;row++)
+            {
+                for (int col = 0; col < numVerts; col++)
+                    Console.Write(adjMatrix[row, col]);
+                Console.WriteLine("");
+            }
+        }
+    }
+    class Driver
+    {
+        static void Main()
+        {
+            Graph courses = new Graph();
+            courses.AddVertex("A");
+            courses.AddVertex("B");
+            courses.AddVertex("C");
+            courses.AddVertex("D");
+            courses.AddVertex("E");
+            courses.AddEdge(0, 1);
+            courses.AddEdge(1, 2);
+            courses.AddEdge(2, 3);
+            courses.AddEdge(3, 4);
+            
+            
+            courses.TopSort();
+        }
+    }
+}
